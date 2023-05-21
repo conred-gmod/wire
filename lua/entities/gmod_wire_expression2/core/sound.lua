@@ -4,9 +4,15 @@
 
 E2Lib.RegisterExtension("sound", true, "Allows E2s to play sounds.", "Sounds can be played out of arbitrary entities, including other players.")
 
+local SoundLib = SoundLib or {}
+E2Lib.SoundLib = SoundLib
+
 local wire_expression2_maxsounds = CreateConVar( "wire_expression2_maxsounds", 16, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_max = CreateConVar( "wire_expression2_sound_burst_max", 8, {FCVAR_ARCHIVE} )
 local wire_expression2_sound_burst_rate = CreateConVar( "wire_expression2_sound_burst_rate", 0.1, {FCVAR_ARCHIVE} )
+
+-- _level_max: Sets the maximum soundLevel we can set on a sound. 140 is maximum to begin with, a more non-obnoxious level is maybe around 110.
+local wire_expression2_sound_level_max = CreateConVar( "wire_expression2_sound_level_max", 110, {FCVAR_ARCHIVE} )
 
 ---------------------------------------------------------------
 -- Helper functions
@@ -38,11 +44,14 @@ local function isAllowed( self )
 
 	return true
 end
+SoundLib.isAllowed = isAllowed
 
 local function getSound( self, index )
 	if isnumber( index ) then index = math.floor( index ) end
 	return self.data.sound_data.sounds[index]
 end
+SoundLib.getSound = getSound
+
 
 local function soundStop(self, index, fade)
 	local sound = getSound( self, index )
@@ -65,6 +74,7 @@ local function soundStop(self, index, fade)
 
 	timer.Remove( "E2_sound_stop_" .. self.entity:EntIndex() .. "_" .. index )
 end
+SoundLib.soundStop = soundStop
 
 local function soundCreate(self, entity, index, time, path, fade)
 	if path:match('["?]') then return end
@@ -104,6 +114,7 @@ local function soundCreate(self, entity, index, time, path, fade)
 		soundStop( self, index, fade )
 	end)
 end
+SoundLib.soundCreate = soundCreate
 
 local function soundPurge( self )
 	local sound_data = self.data.sound_data
@@ -117,6 +128,7 @@ local function soundPurge( self )
 	sound_data.sounds = {}
 	sound_data.count = 0
 end
+SoundLib.soundPurge = soundPurge
 
 ---------------------------------------------------------------
 -- Play functions
@@ -213,6 +225,78 @@ e2function number soundDuration(string sound)
 	return SoundDuration(sound) or 0
 end
 __e2setcost(nil)
+
+-- From https://steamcommunity.com/sharedfiles/filedetails/?id=2221932128, modified
+----------------------------------------------------
+-- soundLevel, soundDSP (Monkatraz)
+----------------------------------------------------
+
+__e2setcost(5)
+
+e2function void soundDSP( index, dsp )
+	local sound = getSound( self, index )
+	if not sound then return end
+	-- We need to apply the DSP while the sound is stopped
+	sound:Stop()
+	sound:SetDSP( math.Clamp( dsp, 0, 34 ) ) -- clamped up to 34 because anything past 34 produces the sound of the letter E
+	sound:Play()
+end
+e2function void soundDSP( string index, dsp ) = e2function void soundDSP( index, dsp )
+
+e2function void soundLevel( index, level )
+	local sound = getSound( self, index )
+	if not sound then return end
+	-- We need to set the level while the sound is stopped
+	sound:Stop()
+	sound:SetSoundLevel( math.Clamp( level, 0, wire_expression2_sound_level_max:GetInt() ) )
+	sound:Play()
+end
+e2function void soundLevel( string index, level ) = e2function void soundLevel( index, level )
+
+----------------------------------------------------
+-- Other stuff (Tim)
+----------------------------------------------------
+
+-- GETs for the above
+
+__e2setcost(2)
+
+e2function number soundDSP( index )
+	local sound = getSound( self, index )
+	if not sound then return 0 end
+	return sound:GetDSP() or 0
+end
+e2function number soundDSP( string index ) = e2function number soundDSP( index )
+
+e2function number soundLevel( index )
+	local sound = getSound( self, index )
+	if not sound then return 0 end
+	return sound:GetSoundLevel()
+end
+e2function number soundLevel( string index ) = e2function number soundLevel( index )
+
+-- Extras (GETs)
+
+e2function number soundPitch( index )
+	local sound = getSound( self, index )
+	if not sound then return 0 end
+	return sound:GetPitch()
+end
+e2function number soundPitch( string index ) = e2function number soundPitch( index )
+
+e2function number soundVolume( index )
+	local sound = getSound( self, index )
+	if not sound then return 0 end
+	return sound:GetVolume()
+end
+e2function number soundVolume( string index ) = e2function number soundVolume( index )
+
+e2function number soundPlaying( index )
+	local sound = getSound( self, index )
+	if not sound then return 0 end
+	return sound:IsPlaying() and 1 or 0
+end
+e2function number soundPlaying( string index ) = e2function number soundPlaying( index )
 
 ---------------------------------------------------------------
 
