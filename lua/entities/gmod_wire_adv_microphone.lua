@@ -46,6 +46,26 @@ function ENT:Initialize()
     self:OnActiveChanged(nil, nil, self:GetActive())
 end
 
+local function PlayerCanHearPlayersVoice_Hook(listener, talker)
+    local talkerPos = talker:GetPos()
+    local listenerPos = listener:GetPos()
+
+    -- Note: any given speaker can only be connected to one microphone,
+    -- so this loops can be considered O(nMic), not O(nMic*nSpeaker)
+    for _, mic in ipairs(LiveMics) do
+        if mic:GetPos():DistToSqr(talkerPos) > PLAYER_VOICE_MAXDIST_SQR then goto mic_next end
+
+        for speaker in pairs(mic._activeSpeakers) do
+            if IsValid(speaker) and
+                speaker:GetPos():DistToSqr(listenerPos) <= PLAYER_VOICE_MAXDIST_SQR
+            then
+                return true, false -- Can hear, not in 3D
+            end
+        end
+        ::mic_next::
+    end
+end
+
 local function Mic_SetLive(self, isLive)
     if not IsValid(self) then
         isLive = false
@@ -55,10 +75,18 @@ local function Mic_SetLive(self, isLive)
     end
 
     if isLive then
+        if LiveMics[1] == nil then
+            hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", PlayerCanHearPlayersVoice_Hook)
+        end 
+
         if not table.HasValue(LiveMics, self) then
             table.insert(LiveMics, self)
         end
     else
+        if LiveMics[1] ~= nil and LiveMics[2] == nil then
+            hook.Remove("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone")
+        end
+
         table.RemoveByValue(LiveMics, self)
     end
 end
@@ -148,8 +176,8 @@ hook.Add("EntityEmitSound", "Wire.AdvMicrophone", function(snd)
     for _, mic in ipairs(LiveMics) do
         if IsValid(mic) then
             mic:HandleSound(
-                snd.SoundName, snd.Volume, snd.Pitch, snd.SoundLevel,
-                snd.Entity, snd.Pos, snd.DSP,
+                snd.SoundName, snd.Volume or 1, snd.Pitch or 100, snd.SoundLevel or 75,
+                snd.Entity, snd.Pos, snd.DSP or 0,
                 "EmitSound"
             )
         end
@@ -193,26 +221,6 @@ function ENT:ReproduceSound(snd, vol, pitch, dsp, emittype)
         speaker:ReproduceSound(snd, vol, pitch, dsp, emittype)
     end
 end
-
-hook.Add("PlayerCanHearPlayersVoice", "Wire.AdvMicrophone", function(listener, talker)
-    local talkerPos = talker:GetPos()
-    local listenerPos = listener:GetPos()
-
-    -- Note: any given speaker can only be connected to one microphone,
-    -- so this loops can be considered O(nMic), not O(nMic*nSpeaker)
-    for _, mic in ipairs(LiveMics) do
-        if mic:GetPos():DistToSqr(talkerPos) > PLAYER_VOICE_MAXDIST_SQR then goto mic_next end
-
-        for speaker in pairs(mic._activeSpeakers) do
-            if IsValid(speaker) and
-                speaker:GetPos():DistToSqr(listenerPos) <= PLAYER_VOICE_MAXDIST_SQR
-            then
-                return true, false -- Can hear, not in 3D
-            end
-        end
-        ::mic_next::
-    end
-end)
 
 -- TODO: hook into sound.PlayFile
 -- TODO: hook into sound.PlayURL
