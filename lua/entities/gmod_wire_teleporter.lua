@@ -313,6 +313,7 @@ end
 
 function ENT:CheckAllowed( e )
 	if (e:GetParent():EntIndex() ~= 0) then return false end
+	if e:IsVehicle() and IsValid(e:GetDriver()) then return false end
 
 	-- These shouldn't happen, ever, but they're here just to be safe
 	local c = e:GetClass()

@@ -38,11 +38,7 @@ function ENT:TriggerInput(iname, value)
 		if hook.Run( "PlayerUse", ply, trace.Entity ) == false then return false end
 		if hook.Run( "WireUse", ply, trace.Entity, self ) == false then return false end
 
-		if trace.Entity.Use then
-			trace.Entity:Use(ply,ply,USE_ON,0)
-		else
-			trace.Entity:Fire("use","1",0)
-		end
+		trace.Entity:Input("use", ply, self)
 	end
 end
 

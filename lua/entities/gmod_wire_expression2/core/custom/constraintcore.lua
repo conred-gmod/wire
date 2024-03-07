@@ -749,12 +749,19 @@ e2function void entity:constraintBreak(entity ent2)
 	local consts = this.Constraints or ent2.Constraints
 	if not consts then return end
 
-	for _, v in ipairs( consts ) do
+	for i, v in ipairs( consts ) do
 		if v:IsValid() then
 			local case1 = v.Ent1 == this and v.Ent2 == ent2
 			local case2 = case1 or ( v.Ent1 == ent2 and v.Ent2 == this )
 
-			if case1 or case2 then v:Remove() end
+			if case1 or case2 then 
+				v:Remove() 
+				
+				consts[i] = nil
+				this:IsConstrained()
+
+				break 
+			end
 		end
 	end
 end
@@ -775,7 +782,7 @@ e2function void entity:constraintBreak(string consType, entity ent2)
 	if not consts then return end
 
 	consType = caps( consType )
-	for _, v in ipairs( consts ) do
+	for i, v in ipairs( consts ) do
 		if v:IsValid() then
 			local correctType = v.Type == consType
 			local case1 = correctType and ( v.Ent1 == this and v.Ent2 == ent2 )
@@ -783,6 +790,10 @@ e2function void entity:constraintBreak(string consType, entity ent2)
 
 			if case1 or case2 then
 				v:Remove()
+
+				consts[i] = nil
+				this:IsConstrained()
+
 				break
 			end
 		end
