@@ -103,16 +103,20 @@ if CLIENT then
         self.IsObserved = isObserved
 
         if isObserved then
-            local index = table.SeqCount(ObservedCameras) + 1
-            print(self, index)
-            ObservedCameras[index] = self
-            self.ObservedCamerasIndex = index
+            self.ObservedCamerasIndex = table.insert(ObservedCameras, self)
 
             self:InitRTTexture()
         else
-            ObservedCameras[self.ObservedCamerasIndex] = nil
-            self.ObservedCamerasIndex = nil
             self.RenderTarget = nil
+
+            local oldi = table.RemoveFastByValue(ObservedCameras, self)
+            if oldi == nil then return end
+            self.ObservedCamerasIndex = nil
+            
+            local shifted_cam = ObservedCameras[oldi]
+            if IsValid(shifted_cam) then
+                shifted_cam.ObservedCamerasIndex = oldi
+            end
         end
     end
 
