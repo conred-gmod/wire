@@ -509,12 +509,14 @@ __e2setcost(10)
 e2function void entity:setMaterial(string material)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	if this:IsPlayer() then return self:throw("You can't modify players", nil) end
 	E2Lib.setMaterial(this, material)
 end
 
 e2function void entity:setSubMaterial(index, string material)
 	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
+	if this:IsPlayer() then return self:throw("You can't modify players", nil) end
 	E2Lib.setSubMaterial(this, index-1, material)
 end
 
