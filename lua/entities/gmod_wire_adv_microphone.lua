@@ -53,18 +53,63 @@ if SERVER then
     end
 end
 
-local function PlayerCanHearPlayersVoice_Hook(listener, talker)
+-- table(Listener: Player, table(Talker: Player, true))
+local VoiceProximityCache = {}
+
+local function UpdateVoiceProximity()
+    if table.IsEmpty(LiveMics) then 
+        VoiceProximityCache = {}
+        return
+    end
+
+    -- Talkers are players who can speak to Listeners.
+    -- So Talkers are determined by Wire Microphones and Listeners are determined by Wire Speakers.
+    -- array({Talkers: table(Player, true), Listeners: table(Player, true)})
+    local SpeakerListenerPairs = {}
+
     -- Note: any given speaker can only be connected to one microphone,
     -- so this loops can be considered O(nMic), not O(nMic*nSpeaker)
-    for _, mic in ipairs(LiveMics) do
-        if not mic._plyCache.PlayersInRange[talker] then goto mic_next end
+    for _, microphone in ipairs(LiveMics) do
+        if not IsValid(microphone) then goto mic_next end
+
+        local plyTalkers = microphone._plyCache.PlayersInRange
+        if table.IsEmpty(plyTalkers) then goto mic_next end
 
         for speaker in pairs(mic._activeSpeakers) do
-            if IsValid(speaker) and speaker._plyCache.PlayersInRange[listener] then
-                return true, false -- Can hear, not in 3D
+            if not IsValid(speaker) then goto spk_next end
+            local plyListeners = speaker._plyCache.PlayersInRange
+
+            if table.IsEmpty(plyListeners) then goto spk_next end
+            
+            table.insert(SpeakerListenerPairs, { 
+                Talkers = plyTalkers,
+                Listeners = plyListeners
+            })
+
+            ::spk_next::
+        end
+        
+        ::mic_next::
+    end
+
+    VoiceProximityCache = {}
+    for _, pair in ipairs(SpeakerListenerPairs) do
+        for listener in pairs(pair.Listeners) do
+            local talkers = VoiceProximityCache[listener] or {}
+            VoiceProximityCache[listener] = talkers
+            
+            for talker in pairs(pair.Talkers) do
+                talkers[talker] = true
             end
         end
-        ::mic_next::
+    end
+end
+
+timer.Create("Wire.AdvMicrophone.VoiceProximity", 0.06, 0, UpdateVoiceProximity)
+
+local function PlayerCanHearPlayersVoice_Hook(listener, talker)
+    if (VoiceProximityCache[listener] or {})[talker] then
+        return true, false -- Can hear, not in 3D
     end
 end
 
