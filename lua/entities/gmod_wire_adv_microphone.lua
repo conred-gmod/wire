@@ -75,7 +75,7 @@ local function UpdateVoiceProximity()
         local plyTalkers = microphone._plyCache.PlayersInRange
         if table.IsEmpty(plyTalkers) then goto mic_next end
 
-        for speaker in pairs(mic._activeSpeakers) do
+        for speaker in pairs(microphone._activeSpeakers) do
             if not IsValid(speaker) then goto spk_next end
             local plyListeners = speaker._plyCache.PlayersInRange
 
@@ -105,7 +105,9 @@ local function UpdateVoiceProximity()
     end
 end
 
-timer.Create("Wire.AdvMicrophone.VoiceProximity", 0.06, 0, UpdateVoiceProximity)
+if SERVER then
+    timer.Create("Wire.AdvMicrophone.VoiceProximity", 0.06, 0, UpdateVoiceProximity)
+end
 
 local function PlayerCanHearPlayersVoice_Hook(listener, talker)
     if (VoiceProximityCache[listener] or {})[talker] then
