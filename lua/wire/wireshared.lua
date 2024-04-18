@@ -41,25 +41,6 @@ function table.Compact(tbl, cb, n) -- luacheck: ignore
 	end
 end
 
--- Works like #tbl, but works when item is removed from middle of the table without shifting.
---[[
-	local t = {1,2,3,4,5}
-	t[3] = nil
-
-	print(#t) -- May return 5, as it is undefined behaviour
-	print(table.SeqCount(t)) -- Will return 2
-
-]]
-function table.SeqCount(tbl)
-    local i = 0
-
-    repeat
-        i = i + 1
-    until tbl[i] == nil
-
-    return i - 1
-end
-
 -- Removes `value` from `tbl` by shifting last element of `tbl` to its place.
 -- Returns index of `value` if it was removed, nil otherwise.
 function table.RemoveFastByValue(tbl, value)
@@ -452,13 +433,14 @@ end
 -- Works for every entity that has wire in-/output.
 -- Very important and useful for checks!
 function WireLib.HasPorts(ent)
-	if (ent.IsWire) then return true end
-	if (ent.Base == "base_wire_entity") then return true end
+	local entTbl = ent:GetTable()
+	if entTbl.IsWire then return true end
+	if entTbl.Base == "base_wire_entity" then return true end
 
 	-- Checks if the entity is in the list, it checks if the entity has self.in-/outputs too.
 	local In, Out = WireLib.GetPorts(ent)
-	if (In and (ent.Inputs or CLIENT)) then return true end
-	if (Out and (ent.Outputs or CLIENT)) then return true end
+	if In and (entTbl.Inputs or CLIENT) then return true end
+	if Out and (entTbl.Outputs or CLIENT) then return true end
 
 	return false
 end
