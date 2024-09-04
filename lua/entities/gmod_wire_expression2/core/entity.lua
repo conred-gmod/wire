@@ -847,13 +847,22 @@ local function validateCanTrail(self, ent)
 	if not isOwner(self, ent) then return self:throw("You do not own this entity!", nil) end
 end
 
+local function removeTrail(self, ent)
+	local PlayerSteamID = self.player:SteamID()
+	if not trailedEntsAmount[PlayerSteamID] then return end
+	if not trailedEntsAmount[PlayerSteamID][ent] then return end
+
+	trailedEntsAmount[PlayerSteamID][ent] = nil
+	duplicator.EntityModifiers.trail(self.player, ent, nil)
+end
+
 local function setTrail(self, ent, Data)
 	local PlayerSteamID = self.player:SteamID()
 	if not trailedEntsAmount[PlayerSteamID] then trailedEntsAmount[PlayerSteamID] = {} end
 
-	-- Removing a trail
+	-- Removing a trail (just in case)
 	if Data == nil then
-		trailedEntsAmount[PlayerSteamID][ent] = nil
+		removeTrail(self, ent)
 		return
 	end
 
@@ -872,7 +881,7 @@ __e2setcost(50)
 --- Removes the trail from <this>.
 e2function void entity:removeTrails()
 	validateCanTrail(self, this)
-	setTrail(self, this, nil)
+	removeTrail(self, this)
 end
 
 __e2setcost(75)
@@ -919,7 +928,7 @@ e2function void entity:setTrails(startSize, endSize, length, string material, ve
 	setTrail(self, this, Data)
 end
 
-__e2setcost(5)
+__e2setcost(10)
 
 [nodiscard]
 e2function number trailsLeft()
@@ -930,6 +939,8 @@ end
 e2function number trailsCount()
 	return table.Count(trailedEntsAmount[self.player:SteamID()])
 end
+
+__e2setcost(5)
 
 [nodiscard]
 e2function number trailsMax()
