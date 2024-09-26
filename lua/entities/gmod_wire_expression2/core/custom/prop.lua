@@ -1547,7 +1547,7 @@ local function E2CollisionEventHandler()
 				for _,i in ipairs(ctx.data.E2QueuedCollisions) do
 					if i.cb then
 						-- Arguments for this were checked when we set it up, no need to typecheck
-						i.cb:UnsafeCall({i.us,i.xcd.HitEntity,i.xcd})
+						i.cb:UnsafeExtCall({i.us,i.xcd.HitEntity,i.xcd},ctx)
 						if chip.error then break end
 					end
 					-- It's okay to ExecuteEvent regardless, it'll just return when it fails to find the registered event
@@ -1580,7 +1580,7 @@ end
 
 e2function number trackCollision( entity ent )
 	-- If it's not registered, collisions will just stack up infinitely and not be flushed.
-	if not registered_chips[self.entity] then
+	if not self.entity.registered_events["entityCollision"] then
 		self:forceThrow("event entityCollision(eexcd) is needed to use trackCollision(e)!")
 	end
 	if IsValid(ent) then
