@@ -2,6 +2,7 @@
   Timer support
 \******************************************************************************/
 
+local wire_expression2_timers_limit = CreateConVar("wire_expression2_timers_limit", 100, FCVAR_ARCHIVE, "The maximum number of timers that can be created by an E2 chip")
 local timerid = 0
 
 local function Execute(self, name)
@@ -87,6 +88,11 @@ local function luaTimerCreate(self, name, delay, repetitions, callback)
 		return self:throw("Timer with name " .. name .. " already exists", nil)
 	end
 
+	local timerLimit = wire_expression2_timers_limit:GetInt()
+	if table.Count(luaTimers[entIndex]) >= timerLimit then
+		return self:throw("Timer limit reached (" .. timerLimit .. ")", nil)
+	end
+
 	local internalName = luaTimerGetInternalName(self.entity:EntIndex(), name)
 	local callback, ent = callback:Unwrap("", self), self.entity
 
@@ -101,7 +107,7 @@ local function luaTimerCreate(self, name, delay, repetitions, callback)
 		ent:Execute(callback)
 
 		if timer.RepsLeft(internalName) == 0 then
-			luaTimers[name] = nil
+			luaTimers[entIndex][name] = nil
 		end
 	end)
 end
