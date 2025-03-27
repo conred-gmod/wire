@@ -67,8 +67,6 @@ if SERVER then
 	for _, filename in ipairs(file.Find("wire/client/text_editor/modes/*.lua","LUA")) do
 		AddCSLuaFile("wire/client/text_editor/modes/" .. filename)
 	end
-
-  	resource.AddFile("resource/fonts/alphalcd.ttf")
 end
 
 -- shared includes

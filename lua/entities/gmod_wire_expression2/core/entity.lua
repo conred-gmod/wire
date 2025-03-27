@@ -123,6 +123,15 @@ e2function entity entity:owner()
 	return getOwner(self, this)
 end
 
+__e2setcost(100)
+
+e2function array entities()
+	local entities = ents.GetAll()
+	self.prf = self.prf + #entities / 2
+
+	return entities
+end
+
 __e2setcost(20)
 
 e2function table entity:keyvalues()
@@ -1296,6 +1305,14 @@ hook.Add("OnEntityCreated", "E2_entityCreated", function(ent)
 end)
 
 E2Lib.registerEvent("entityCreated", {
+	{ "Entity", "e" }
+})
+
+hook.Add("EntityRemoved", "E2_entityRemoved", function(ent)
+	E2Lib.triggerEvent("entityRemoved", { ent })
+end)
+
+E2Lib.registerEvent("entityRemoved", {
 	{ "Entity", "e" }
 })
 
