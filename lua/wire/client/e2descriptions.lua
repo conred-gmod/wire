@@ -1089,6 +1089,8 @@ E2Helper.Descriptions["runOnChat(n)"] = "DEPRECATED. Use 'event chat(Player:enti
 -- Color
 E2Helper.Descriptions["setBodygroup(e:nn)"] = "Group ID, Group SubID\nSets the bodygroups of the given entity"
 E2Helper.Descriptions["getBodygroups(e:n)"] = "Group ID\nReturns the number of bodygroups in the Group ID of the given entity"
+E2Helper.Descriptions["setBloodColor(e:n)"] = "Sets the blood color of an entity via a number (_BLOOD)."
+E2Helper.Descriptions["getBloodColor(e:)"] = "Returns the blood color of an entity as a number (_BLOOD)."
 E2Helper.Descriptions["setColor(nnn)"] = "Sets the color of the E2 chip"
 E2Helper.Descriptions["setColor(e:vn)"] = "Sets the color (as vector) and alpha (as number) of the entity"
 E2Helper.Descriptions["setColor(e:xv4)"] = "Sets the color and alpha (as 4D vector) of the entity"
@@ -1852,11 +1854,14 @@ end
 -- Damage
 
 E2Helper.Descriptions["isType(xdm:n)"] = "Returns whether the damage contains the type flag provided. For example isType(_DMG_BLAST) would return 1 if the damage contains blast damage."
+E2Helper.Descriptions["getDamageType(xdm:)"] = "Returns the damage type (_DMG)"
 E2Helper.Descriptions["getAmount(xdm:)"] = "Returns the amount of damage dealt"
+E2Helper.Descriptions["getMaxAmount(xdm:)"] = "Returns the maximum amount of damage dealt"
 E2Helper.Descriptions["getPosition(xdm:)"] = "Returns the position where the damage was dealt"
 E2Helper.Descriptions["getForce(xdm:)"] = "Returns the force of the damage dealt"
 E2Helper.Descriptions["getInflictor(xdm:)"] = "Returns the inflictor (weapon) which caused the damage to be dealt"
 E2Helper.Descriptions["getAttacker(xdm:)"] = "Returns the attacker which used the inflictor to deal the damage"
+E2Helper.Descriptions["getWeapon(xdm:)"] = "Returns the weapon, not necessarily that it is an inflictor or weapon"
 E2Helper.Descriptions["getAmmoType(xdm:)"] = "Returns the ammo type id of the damage dealt"
 
 E2Helper.Descriptions["takeDamage(e:n)"] = "Applies an amount of damage to the player. Requires wire_expression2_damage_enabled to be set to 1."
