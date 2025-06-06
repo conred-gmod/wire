@@ -137,13 +137,6 @@ e2function number entity:isCrouch()
 	return this:IsPlayer() and this:Crouching() and 1 or 0
 end
 
-e2function number entity:isAlive()
-	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
-	if this:IsPlayer() and this:Alive() then return 1 end
-	if this:IsNPC() and this:Health() > 0 then return 1 end
-	return 0
-end
-
 -- returns 1 if players has flashlight on or 0 if not
 e2function number entity:isFlashlightOn()
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
@@ -787,6 +780,9 @@ e2function vector entity:aimNormal()
 end
 
 local getBone = E2Lib.getBone
+hook.Add("Expression2_PostLoadExtensions", "e2_player_extension_getbone", function()
+	getBone = E2Lib.getBone
+end)
 
 --- Returns the bone the player is currently aiming at.
 e2function bone entity:aimBone()
