@@ -1,6 +1,6 @@
 local wire_expression2_entity_trails_max = CreateConVar("wire_expression2_entity_trails_max", 30, FCVAR_ARCHIVE, "Max amount of trails a player can make. 0 - to disable trails. (Limit is shared between E2s of a player)", 0)
 
-registerType("entity", "e", nil,
+registerType("entity", "e", NULL,
 	nil,
 	function(self,output) return output or NULL end,
 	nil,
@@ -69,8 +69,7 @@ end
 --[[******************************************************************************]]
 
 e2function entity entity(id)
-	local ent = ents.GetByIndex(id)
-	return IsValid(ent) and ent or nil
+	return ents.GetByIndex(id)
 end
 
 e2function number entity:id()
@@ -91,6 +90,9 @@ end
 --[[******************************************************************************]]
 -- Functions getting string
 
+E2Lib.registerConstant("NO_ENTITY", NULL, "An invalid entity")
+
+[deprecated = "Use the constant NO_ENTITY instead"]
 e2function entity noentity()
 	return NULL
 end
@@ -119,8 +121,8 @@ e2function string entity:model()
 end
 
 e2function entity entity:owner()
-	if not IsValid(this) then return self:throw("Invalid entity!", nil) end
-	return getOwner(self, this)
+	if not IsValid(this) then return self:throw("Invalid entity!", NULL) end
+	return getOwner(self, this) or NULL
 end
 
 __e2setcost(100)
@@ -592,6 +594,13 @@ e2function number entity:getBodygroup(bgrp_id)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
 	return this:GetBodygroup(bgrp_id)
 end
+
+--- Gets <this>'s bodygroup name.
+e2function string entity:getBodygroupName(bgrp_id)
+    if not IsValid(this) then return self:throw("Invalid entity!", "") end
+    return this:GetBodygroupName(bgrp_id)
+end
+
 --- Gets <this>'s bodygroup count.
 e2function number entity:getBodygroups(bgrp_id)
 	if not IsValid(this) then return self:throw("Invalid entity!", 0) end
@@ -783,9 +792,8 @@ end
 e2function void entity:podSetName(string name)
 	if not IsValid(this) or not this:IsVehicle() or not this.VehicleTable or not this.VehicleTable.Name then return self:throw("Invalid vehicle!", nil) end
 	if not isOwner(self, this) then return self:throw("You do not own this entity!", nil) end
-	if hook.Run("Wire_CanName") == false then return self:throw("A hook prevented this function from running") end
-	name = name:sub(1,200)
-	this.VehicleTable.Name = name
+	if hook.Run("Wire_CanName", name, this, self.player) == false then return self:throw("A hook prevented this function from running") end
+	this.VehicleTable.Name = name:sub(1, 200)
 end
 
 --[[******************************************************************************]]
@@ -882,19 +890,26 @@ end)
 __e2setcost(5)
 
 e2function entity entity:driver()
-	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
+	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", NULL) end
 	return this:GetDriver()
 end
 
 e2function entity entity:passenger()
-	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", nil) end
+	if not IsValid(this) or not this:IsVehicle() then return self:throw("Invalid vehicle!", NULL) end
 	return this:GetPassenger(0)
 end
 
 --- Returns <ent> formatted as a string. Returns "<code>(null)</code>" for invalid entities.
 e2function string toString(entity ent)
-	if not IsValid(ent) then return "(null)" end
-	return tostring(ent)
+	if ent then
+		if ent:IsValid() then
+			return tostring(ent)
+		elseif ent:IsWorld() then
+			return "(world)"
+		end
+	end
+
+	return "(null)"
 end
 
 e2function string entity:toString() = e2function string toString(entity ent)
@@ -1318,7 +1333,7 @@ e2function number entity:getModelBoneIndex(string bone_name)
 	return this:LookupBone(bone_name) or -1
 end
 
-e2function number entity:getModelBoneName(bone_index)
+e2function string entity:getModelBoneName(bone_index)
 	if not IsValid(this) then return self:throw("Invalid entity!", "") end
 
 	return this:GetBoneName(bone_index) or ""
