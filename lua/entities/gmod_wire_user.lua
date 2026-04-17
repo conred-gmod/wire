@@ -1,7 +1,7 @@
 AddCSLuaFile()
 ENT.Base = "base_wire_entity"
 ENT.PrintName = "Wire User"
-ENT.RenderGroup = RENDERGROUP_BOTH
+ENT.WantsTranslucency = true
 ENT.WireDebugName = "User"
 
 function ENT:SetupDataTables()
@@ -41,4 +41,4 @@ function ENT:TriggerInput(name, value)
 	end
 end
 
-duplicator.RegisterEntityClass("gmod_wire_user", WireLib.MakeWireEnt, "Data")
+duplicator.RegisterEntityClass("gmod_wire_user", WireLib.MakeWireEnt, "Data", "Range")
